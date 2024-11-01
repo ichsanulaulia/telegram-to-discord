@@ -1,0 +1,30 @@
+{
+  "name": "telegram-to-discord-",
+  "version": "0.1.0",
+  "description": "A simple Telegram to Discord Forwarder with Express",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "discord.js": "^13.16.3",
+    "node-fetch": "^2.7.0",
+    "telegraf": "^4.16.3",
+    "node-telegram-bot-api": "^0.66.0",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": "16.x"
+  },
+  "license": "MIT",
+  "keywords": [
+    "telegram-to-discord",
+    "express",
+    "telegram bot",
+    "discord bot",
+    "file transfer",
+    "nodejs"
+  ],
+  "author": "ozoraa"
+}
