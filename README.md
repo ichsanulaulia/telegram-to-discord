@@ -36,3 +36,8 @@ TELEGRAM_TOKEN=your_telegram_bot_token
 DISCORD_TOKEN=your_discord_bot_token
 DISCORD_CHANNEL_ID=your_discord_channel_id
 PORT=3000 # Optional, defaults to 3000 if not specified
+```
+3. **run program** 
+    ```bash
+    npm start
+    ```
