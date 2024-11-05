@@ -9,6 +9,8 @@ const moment = require('moment');
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const DISCORD_CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL; // Discord webhook URL
+const BRIDGE_MODE = process.env.BRIDGE_MODE || 'client'; // 'client' or 'webhook'
 
 const bot = new Telegraf(TELEGRAM_TOKEN);
 const discordClient = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
@@ -27,36 +29,79 @@ async function downloadFileToBuffer(url) {
   return Buffer.from(response.data, 'binary');
 }
 
+// Function to send message using Discord client
+async function sendWithClient(content, buffer, fileName) {
+  const discordChannel = await discordClient.channels.fetch(DISCORD_CHANNEL_ID);
+  await discordChannel.send({ content, files: buffer ? [new MessageAttachment(buffer, fileName)] : [] });
+}
+
+// Function to send message using Discord webhook
+async function sendWithWebhook(content, buffer, fileName) {
+  const form = new FormData();
+  form.append('content', content);
+  if (buffer && fileName) {
+    form.append('file', buffer, fileName);
+  }
+
+  await axios.post(DISCORD_WEBHOOK_URL, form, {
+    headers: form.getHeaders()
+  });
+}
+
 // Telegram bot - forward messages to Discord
 bot.on('channel_post', async (ctx) => {
   const message = ctx.channelPost;
   console.log("Menerima pesan dari channel announcement:", message);
 
   try {
-    const discordChannel = await discordClient.channels.fetch(DISCORD_CHANNEL_ID);
     let fileName = "";
     let caption = message.caption ? message.caption : "";
 
+    let buffer = null;
+
     if (message.text) {
-      await discordChannel.send(message.text);
+      // Send text message
+      if (BRIDGE_MODE === 'client') {
+        await sendWithClient(message.text, null, null);
+      } else {
+        await sendWithWebhook(message.text, null, null);
+      }
     } else if (message.photo) {
+      // Send photo
       const fileId = message.photo[message.photo.length - 1].file_id;
       const fileUrl = await bot.telegram.getFileLink(fileId);
-      const buffer = await downloadFileToBuffer(fileUrl);
+      buffer = await downloadFileToBuffer(fileUrl);
       fileName = 'photo.jpg';
-      await discordChannel.send({ content: caption, files: [new MessageAttachment(buffer, fileName)] });
+
+      if (BRIDGE_MODE === 'client') {
+        await sendWithClient(caption, buffer, fileName);
+      } else {
+        await sendWithWebhook(caption, buffer, fileName);
+      }
     } else if (message.video) {
+      // Send video
       const fileId = message.video.file_id;
       const fileUrl = await bot.telegram.getFileLink(fileId);
-      const buffer = await downloadFileToBuffer(fileUrl);
+      buffer = await downloadFileToBuffer(fileUrl);
       fileName = 'video.mp4';
-      await discordChannel.send({ content: caption, files: [new MessageAttachment(buffer, fileName)] });
+
+      if (BRIDGE_MODE === 'client') {
+        await sendWithClient(caption, buffer, fileName);
+      } else {
+        await sendWithWebhook(caption, buffer, fileName);
+      }
     } else if (message.document) {
+      // Send document
       const fileId = message.document.file_id;
       const fileUrl = await bot.telegram.getFileLink(fileId);
-      const buffer = await downloadFileToBuffer(fileUrl);
+      buffer = await downloadFileToBuffer(fileUrl);
       fileName = message.document.file_name;
-      await discordChannel.send({ content: caption, files: [new MessageAttachment(buffer, fileName)] });
+
+      if (BRIDGE_MODE === 'client') {
+        await sendWithClient(caption, buffer, fileName);
+      } else {
+        await sendWithWebhook(caption, buffer, fileName);
+      }
     } else {
       console.log("Pesan tipe lain diterima dari Telegram dan tidak di-forward.");
       return;
@@ -96,7 +141,11 @@ app.get('/transfers', (req, res) => {
 
 // Start Telegram bot, Discord client, and Express server
 bot.launch();
-discordClient.login(DISCORD_TOKEN);
+
+if (BRIDGE_MODE === 'client') {
+  discordClient.login(DISCORD_TOKEN);
+}
+
 app.listen(PORT, () => {
   console.log(`Express server running on http://localhost:${PORT}`);
 });
