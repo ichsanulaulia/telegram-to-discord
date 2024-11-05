@@ -1,16 +1,27 @@
-# Telegram to Discord Forwarder with Express
+# Telegram-to-Discord File Forwarding Bot
 
-This project sets up a bot to forward messages from a Telegram announcement channel to a specified Discord channel. It also includes an Express.js server to display information about forwarded files, including file name, timestamp, and caption.
+This project is a flexible bot that forwards messages and media files from a Telegram channel to a Discord channel. Users can choose between forwarding messages with the **Discord Client** or a **Discord Webhook** for seamless integration and easier setup.
 
 ## Features
 
-- Forwards text, photos, videos, and documents from Telegram to Discord.
-- Displays information about transferred files via a web interface.
-- Logs timestamp, file name, and caption for each forwarded message.
+- **Two Modes for Forwarding**:
+  - **Client Mode**: Uses a Discord Bot Client for message transfer, suitable for setups where bot presence in the Discord server is needed.
+  - **Webhook Mode**: Uses a Discord Webhook to forward messages, reducing the need for a logged-in bot client.
+- **Supports Various Media Types**:
+  - Text messages
+  - Photos, Videos, and Documents
+- **Transfer Logging**:
+  - Logs each file transfer with filename, timestamp, and caption.
+  - Accessible via a simple web interface.
 
-## Prerequisites
+## Setup and Installation
 
-- Node.js installed
+### Prerequisites
+
+- **Node.js** (>= 16)
+- **Telegram Bot Token**: Obtain via [BotFather](https://core.telegram.org/bots#botfather) on Telegram.
+- **Discord Bot Token**: Create a bot on the [Discord Developer Portal](https://discord.com/developers/applications).
+- **Discord Webhook** (optional): Can be created in the Discord channel settings for webhook-based transfer.
 - A Telegram bot token
 - A Discord bot token and a target channel ID
 
@@ -35,7 +46,9 @@ This project sets up a bot to forward messages from a Telegram announcement chan
 TELEGRAM_TOKEN=your_telegram_bot_token
 DISCORD_TOKEN=your_discord_bot_token
 DISCORD_CHANNEL_ID=your_discord_channel_id
-PORT=3000 # Optional, defaults to 3000 if not specified
+DISCORD_WEBHOOK_URL=your_discord_webhook_url # Optional, only needed for webhook mode
+BRIDGE_MODE=client # Use 'client' or 'webhook'
+PORT=3000 # Optional, default is 3000
 ```
 4. **Run program** 
     ```bash
